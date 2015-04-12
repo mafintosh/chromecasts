@@ -1,4 +1,4 @@
-# chromecast-control
+# chromecasts
 
 Query your local network for Chromecasts and have them play media
 
