@@ -82,10 +82,15 @@ module.exports = function () {
             images: [].concat(opts.images || []).map(toMap)
           }
         }
+
+        var autoSubtitles = opts.autoSubtitles
+        if (autoSubtitles === false) autoSubtitles = 0
+        if (autoSubtitles === true) autoSubtitles = 1
+
         var playerOptions = {
-          autoplay: true,
+          autoplay: opts.autoPlay !== false,
           currentTime: opts.seek,
-          activeTrackIds: opts.subtitles && [1]
+          activeTrackIds: opts.subtitles && (autoSubtitles === 0 ? [] : [opts.autoSubtitles || 1])
         }
 
         p.load(media, playerOptions, cb)
