@@ -7,6 +7,18 @@ var noop = function () {}
 var toMap = function (url) {
   return typeof url === 'string' ? {url: url} : url
 }
+var toSubtitles = function (url, i) {
+  if (typeof url !== 'string') return url
+  return {
+    trackId: i + 1,
+    type: 'TEXT',
+    trackContentId: url,
+    trackContentType: 'text/vtt',
+    name: 'English',
+    language: 'en-US',
+    subtype: 'SUBTITLES'
+  }
+}
 
 module.exports = function () {
   var dns = mdns()
@@ -62,6 +74,7 @@ module.exports = function () {
           contentId: url,
           contentType: opts.type || 'video/mp4',
           streamType: opts.streamType || 'BUFFERED',
+          tracks: [].concat(opts.subtitles).map(toSubtitles),
           metadata: opts.metadata || {
             type: 0,
             metadataType: 0,
@@ -69,8 +82,13 @@ module.exports = function () {
             images: [].concat(opts.images).map(toMap)
           }
         }
+        var playerOptions = {
+          autoplay: true,
+          currentTime: opts.seek,
+          activeTrackIds: opts.subtitles && [1]
+        }
 
-        p.load(media, { autoplay: true, currentTime: opts.seek }, cb)
+        p.load(media, playerOptions, cb)
       })
     }
 
@@ -102,6 +120,22 @@ module.exports = function () {
       connect(function (err, p) {
         if (err) return cb(err)
         p.getStatus(cb)
+      })
+    }
+
+    player.subtitles = function(id, cb) {
+      if (!cb) cb = noop
+      player.request({
+        type: 'EDIT_TRACKS_INFO',
+        activeTrackIds: id ? [id === true ? 1 : id] : []
+      }, cb)
+    }
+
+    player.request = function (data, cb) {
+      if (!cb) cb = noop
+      connect(function (err, p) {
+        if (err) return cb(err)
+        p.media.sessionRequest(data, cb)
       })
     }
 

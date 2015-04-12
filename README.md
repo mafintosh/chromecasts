@@ -41,23 +41,28 @@ Make the player play a url. Options include:
 {
   title: 'My movie',
   type: 'video/mp4',
-  seek: seconds // start by seeking to this offset
+  seek: seconds, // start by seeking to this offset
+  subtitles: ['http://example.com/sub.vtt'] // subtitle track 1
 }
 ```
 
-#### `player.pause()`
+#### `player.subtitles(track, [cb])`
+
+Enable subtitle track. Use `player.subtitles(false)` to disable subtitles
+
+#### `player.pause([cb])`
 
 Make the player pause playback
 
-#### `player.resume()`
+#### `player.resume([cb])`
 
 Resume playback
 
-#### `player.stop()`
+#### `player.stop([cb])`
 
 Stop the playback
 
-#### `player.seek(seconds, cb)`
+#### `player.seek(seconds, [cb])`
 
 Seek the video
 
