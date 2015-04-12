@@ -74,12 +74,12 @@ module.exports = function () {
           contentId: url,
           contentType: opts.type || 'video/mp4',
           streamType: opts.streamType || 'BUFFERED',
-          tracks: [].concat(opts.subtitles).map(toSubtitles),
+          tracks: [].concat(opts.subtitles || []).map(toSubtitles),
           metadata: opts.metadata || {
             type: 0,
             metadataType: 0,
             title: opts.title || '',
-            images: [].concat(opts.images).map(toMap)
+            images: [].concat(opts.images || []).map(toMap)
           }
         }
         var playerOptions = {
