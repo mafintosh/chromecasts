@@ -90,7 +90,7 @@ module.exports = function () {
         var playerOptions = {
           autoplay: opts.autoPlay !== false,
           currentTime: opts.seek,
-          activeTrackIds: opts.subtitles && (autoSubtitles === 0 ? [] : [opts.autoSubtitles || 1])
+          activeTrackIds: opts.subtitles && (autoSubtitles === 0 ? [] : [autoSubtitles || 1])
         }
 
         p.load(media, playerOptions, cb)
