@@ -89,6 +89,13 @@ module.exports = function () {
       connectClient(cb)
     }
 
+    player.chromecastStatus = function (cb) {
+      connectClient(function (err, client) {
+        if (err) return cb(err)
+        client.getStatus(cb)
+      })
+    }
+
     player.play = function (url, opts, cb) {
       if (typeof opts === 'function') return player.play(url, null, opts)
       if (!opts) opts = {}
