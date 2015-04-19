@@ -65,6 +65,7 @@ module.exports = function () {
 
     player.play = function (url, opts, cb) {
       if (typeof opts === 'function') return player.play(url, null, opts)
+      if (!opts) opts = {}
       if (!url) return player.resume(cb)
       if (!cb) cb = noop
       connect(function (err, p) {
