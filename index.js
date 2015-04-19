@@ -51,6 +51,11 @@ module.exports = function () {
           if (err) return cb(err)
 
           player.emit('ready')
+
+          p.on('close', function () {
+            connect = thunky(reconnect)
+          })
+
           p.on('status', function (status) {
             player.emit('status', status)
           })
@@ -60,8 +65,29 @@ module.exports = function () {
       })
     })
 
+    var connectClient = thunky(function reconnectClient (cb) {
+      var client = new castv2.Client()
+
+      client.on('error', function (err) {
+        connectClient = thunky(reconnectClient)
+      })
+
+      client.on('close', function () {
+        connectClient = thunky(reconnectClient)
+      })
+
+      client.connect(player.host, function (err) {
+        if (err) return cb(err)
+        cb(null, client)
+      })
+    })
+
     player.name = cst.name
     player.host = cst.host
+
+    player.client = function (cb) {
+      connectClient(cb)
+    }
 
     player.play = function (url, opts, cb) {
       if (typeof opts === 'function') return player.play(url, null, opts)
