@@ -210,12 +210,6 @@ module.exports = function () {
     response.answers.forEach(onanswer)
   })
 
-  dns.on('query', function (q) {
-    dns.response({
-      answers: [{type: 'PTR', name: '_googlecast._tcp.local', data: 'john.g'}]
-    })
-  })
-
   that.update = function () {
     dns.query('_googlecast._tcp.local', 'PTR')
   }
