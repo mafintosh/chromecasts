@@ -113,7 +113,7 @@ module.exports = function () {
 
         var media = {
           contentId: url,
-          contentType: opts.type || mime.lookup(url),
+          contentType: opts.type || mime.lookup(url, 'video/mp4'),
           streamType: opts.streamType || 'BUFFERED',
           tracks: [].concat(opts.subtitles || []).map(toSubtitles),
           metadata: opts.metadata || {
