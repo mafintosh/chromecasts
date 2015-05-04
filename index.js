@@ -74,7 +74,7 @@ module.exports = function () {
     var connectClient = thunky(function reconnectClient (cb) {
       var client = new castv2.Client()
 
-      client.on('error', function (err) {
+      client.on('error', function () {
         connectClient = thunky(reconnectClient)
       })
 

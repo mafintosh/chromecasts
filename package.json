@@ -12,7 +12,12 @@
     "thunky": "^0.1.0",
     "xml2js": "^0.4.8"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "standard": "^3.7.3"
+  },
+  "scripts": {
+    "test": "standard"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/mafintosh/chromecasts.git"
