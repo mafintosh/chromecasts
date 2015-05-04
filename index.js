@@ -1,19 +1,19 @@
-var castv2 = require('castv2-client')
-var debug = require('debug')('chromecasts')
-var events = require('events')
-var mdns = require('multicast-dns')
-var parseString = require('xml2js').parseString
-var request = require('request')
-var SSDP = require('node-ssdp').Client
-var thunky = require('thunky')
-var url = require('url')
+var castv2 = require('castv2-client');
+var debug = require('debug')('chromecasts');
+var events = require('events');
+var mdns = require('multicast-dns');
+var parseString = require('xml2js').parseString;
+var request = require('request');
+var SSDP = require('node-ssdp').Client;
+var thunky = require('thunky');
+var url = require('url');
 
-var noop = function () {}
+var noop = function () {};
 var toMap = function (url) {
-  return typeof url === 'string' ? {url: url} : url
-}
+  return typeof url === 'string' ? {url: url} : url;
+};
 var toSubtitles = function (url, i) {
-  if (typeof url !== 'string') return url
+  if (typeof url !== 'string') return url;
   return {
     trackId: i + 1,
     type: 'TEXT',
@@ -22,93 +22,93 @@ var toSubtitles = function (url, i) {
     name: 'English',
     language: 'en-US',
     subtype: 'SUBTITLES'
-  }
-}
+  };
+};
 
 module.exports = function () {
-  var dns = mdns()
-  var that = new events.EventEmitter()
-  var casts = {}
-  var ssdp = new SSDP({logLevel: process.env.DEBUG ? 'trace' : false})
+  var dns = mdns();
+  var that = new events.EventEmitter();
+  var casts = {};
+  var ssdp = new SSDP({logLevel: process.env.DEBUG ? 'trace' : false});
 
-  that.players = []
+  that.players = [];
 
   var emit = function (cst) {
-    if (!cst || !cst.host || cst.emitted) return
-    cst.emitted = true
+    if (!cst || !cst.host || cst.emitted) return;
+    cst.emitted = true;
 
-    var player = new events.EventEmitter()
+    var player = new events.EventEmitter();
 
     var connect = thunky(function reconnect (cb) {
-      var client = new castv2.Client()
+      var client = new castv2.Client();
 
       client.on('error', function (err) {
-        player.emit('error', err)
-      })
+        player.emit('error', err);
+      });
 
       client.on('close', function () {
-        connect = thunky(reconnect)
-      })
+        connect = thunky(reconnect);
+      });
 
       client.connect(player.host, function (err) {
-        if (err) return cb(err)
-        player.emit('connect')
+        if (err) return cb(err);
+        player.emit('connect');
         client.launch(castv2.DefaultMediaReceiver, function (err, p) {
-          if (err) return cb(err)
+          if (err) return cb(err);
 
-          player.emit('ready')
+          player.emit('ready');
 
           p.on('close', function () {
-            connect = thunky(reconnect)
-          })
+            connect = thunky(reconnect);
+          });
 
           p.on('status', function (status) {
-            player.emit('status', status)
-          })
+            player.emit('status', status);
+          });
 
-          cb(null, p)
-        })
-      })
-    })
+          cb(null, p);
+        });
+      });
+    });
 
     var connectClient = thunky(function reconnectClient (cb) {
-      var client = new castv2.Client()
+      var client = new castv2.Client();
 
       client.on('error', function (err) {
-        connectClient = thunky(reconnectClient)
-      })
+        connectClient = thunky(reconnectClient);
+      });
 
       client.on('close', function () {
-        connectClient = thunky(reconnectClient)
-      })
+        connectClient = thunky(reconnectClient);
+      });
 
       client.connect(player.host, function (err) {
-        if (err) return cb(err)
-        cb(null, client)
-      })
-    })
+        if (err) return cb(err);
+        cb(null, client);
+      });
+    });
 
-    player.name = cst.name
-    player.host = cst.host
+    player.name = cst.name;
+    player.host = cst.host;
 
     player.client = function (cb) {
-      connectClient(cb)
-    }
+      connectClient(cb);
+    };
 
     player.chromecastStatus = function (cb) {
       connectClient(function (err, client) {
-        if (err) return cb(err)
-        client.getStatus(cb)
-      })
-    }
+        if (err) return cb(err);
+        client.getStatus(cb);
+      });
+    };
 
     player.play = function (url, opts, cb) {
-      if (typeof opts === 'function') return player.play(url, null, opts)
-      if (!opts) opts = {}
-      if (!url) return player.resume(cb)
-      if (!cb) cb = noop
+      if (typeof opts === 'function') return player.play(url, null, opts);
+      if (!opts) opts = {};
+      if (!url) return player.resume(cb);
+      if (!cb) cb = noop;
       connect(function (err, p) {
-        if (err) return cb(err)
+        if (err) return cb(err);
 
         var media = {
           contentId: url,
@@ -121,147 +121,147 @@ module.exports = function () {
             title: opts.title || '',
             images: [].concat(opts.images || []).map(toMap)
           }
-        }
+        };
 
-        var autoSubtitles = opts.autoSubtitles
-        if (autoSubtitles === false) autoSubtitles = 0
-        if (autoSubtitles === true) autoSubtitles = 1
+        var autoSubtitles = opts.autoSubtitles;
+        if (autoSubtitles === false) autoSubtitles = 0;
+        if (autoSubtitles === true) autoSubtitles = 1;
 
         var playerOptions = {
           autoplay: opts.autoPlay !== false,
           currentTime: opts.seek,
           activeTrackIds: opts.subtitles && (autoSubtitles === 0 ? [] : [autoSubtitles || 1])
-        }
+        };
 
-        p.load(media, playerOptions, cb)
-      })
-    }
+        p.load(media, playerOptions, cb);
+      });
+    };
 
     player.resume = function (cb) {
-      if (!cb) cb = noop
+      if (!cb) cb = noop;
       connect(function (err, p) {
-        if (err) return cb(err)
-        p.play()
-      })
-    }
+        if (err) return cb(err);
+        p.play();
+      });
+    };
 
     player.pause = function (cb) {
-      if (!cb) cb = noop
+      if (!cb) cb = noop;
       connect(function (err, p) {
-        if (err) return cb(err)
-        p.pause(cb)
-      })
-    }
+        if (err) return cb(err);
+        p.pause(cb);
+      });
+    };
 
     player.stop = function (cb) {
-      if (!cb) cb = noop
+      if (!cb) cb = noop;
       connect(function (err, p) {
-        if (err) return cb(err)
-        p.stop(cb)
-      })
-    }
+        if (err) return cb(err);
+        p.stop(cb);
+      });
+    };
 
     player.status = function (cb) {
       connect(function (err, p) {
-        if (err) return cb(err)
-        p.getStatus(cb)
-      })
-    }
+        if (err) return cb(err);
+        p.getStatus(cb);
+      });
+    };
 
     player.subtitles = function (id, cb) {
-      if (!cb) cb = noop
+      if (!cb) cb = noop;
       player.request({
         type: 'EDIT_TRACKS_INFO',
         activeTrackIds: id ? [id === true ? 1 : id] : []
-      }, cb)
-    }
+      }, cb);
+    };
 
     player.request = function (data, cb) {
-      if (!cb) cb = noop
+      if (!cb) cb = noop;
       connect(function (err, p) {
-        if (err) return cb(err)
-        p.media.sessionRequest(data, cb)
-      })
-    }
+        if (err) return cb(err);
+        p.media.sessionRequest(data, cb);
+      });
+    };
 
     player.seek = function (time, cb) {
-      if (!cb) cb = noop
+      if (!cb) cb = noop;
       connect(function (err, p) {
-        if (err) return cb(err)
-        p.seek(time, cb)
-      })
-    }
+        if (err) return cb(err);
+        p.seek(time, cb);
+      });
+    };
 
-    that.players.push(player)
-    that.emit('update', player)
-  }
+    that.players.push(player);
+    that.emit('update', player);
+  };
 
   dns.on('response', function (response) {
     response.answers.forEach(function (a) {
       if (a.type === 'PTR' || a.name === '_googlecast._tcp.local') {
-        var name = a.data.replace('._googlecast._tcp.local', '')
-        if (!casts[name]) casts[name] = {name: name, host: null}
+        var name = a.data.replace('._googlecast._tcp.local', '');
+        if (!casts[name]) casts[name] = {name: name, host: null};
       }
-    })
+    });
 
     var onanswer = function (a) {
-      debug('got answer %j', a)
+      debug('got answer %j', a);
 
-      var name = a.name.replace('.local', '')
+      var name = a.name.replace('.local', '');
       if (a.type === 'A' && casts[name] && !casts[name].host) {
-        casts[name].host = a.data
-        emit(casts[name])
+        casts[name].host = a.data;
+        emit(casts[name]);
       }
-    }
+    };
 
-    response.additionals.forEach(onanswer)
-    response.answers.forEach(onanswer)
-  })
+    response.additionals.forEach(onanswer);
+    response.answers.forEach(onanswer);
+  });
 
   ssdp.on('response', function (headers, statusCode, info) {
-    if (!headers.LOCATION) return
+    if (!headers.LOCATION) return;
 
     request.get(headers.LOCATION, function (err, res, body) {
-      if (err) return
+      if (err) return;
 
       parseString(body, {explicitArray: false, explicitRoot: false},
         function (err, service) {
-          if (err) return
-          if (!service.device) return
-          if (service.device.manufacturer !== 'Google Inc.') return
+          if (err) return;
+          if (!service.device) return;
+          if (service.device.manufacturer !== 'Google Inc.') return;
 
-          debug('device %j', service.device)
+          debug('device %j', service.device);
 
-          var name = service.device.friendlyName
+          var name = service.device.friendlyName;
 
-          if (!name) return
+          if (!name) return;
 
-          var host = url.parse(service.URLBase).hostname
+          var host = url.parse(service.URLBase).hostname;
 
           if (!casts[name]) {
-            casts[name] = {name: name, host: host}
-            return emit(casts[name])
+            casts[name] = {name: name, host: host};
+            return emit(casts[name]);
           }
 
           if (casts[name] && !casts[name].host) {
-            casts[name].host = host
-            emit(casts[name])
+            casts[name].host = host;
+            emit(casts[name]);
           }
-        })
-    })
-  })
+        });
+    });
+  });
 
   that.update = function () {
-    debug('querying mdns and ssdp')
-    ssdp.search('urn:dial-multiscreen-org:device:dial:1')
-    dns.query('_googlecast._tcp.local', 'PTR')
-  }
+    debug('querying mdns and ssdp');
+    ssdp.search('urn:dial-multiscreen-org:device:dial:1');
+    dns.query('_googlecast._tcp.local', 'PTR');
+  };
 
   that.destroy = function () {
-    dns.destroy()
-  }
+    dns.destroy();
+  };
 
-  that.update()
+  that.update();
 
-  return that
-}
+  return that;
+};
