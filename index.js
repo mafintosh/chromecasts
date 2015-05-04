@@ -2,6 +2,7 @@ var castv2 = require('castv2-client')
 var debug = require('debug')('chromecasts')
 var events = require('events')
 var mdns = require('multicast-dns')
+var mime = require('mime')
 var parseString = require('xml2js').parseString
 var request = require('request')
 var SSDP = require('node-ssdp').Client
@@ -112,7 +113,7 @@ module.exports = function () {
 
         var media = {
           contentId: url,
-          contentType: opts.type || 'video/mp4',
+          contentType: opts.type || mime.lookup(url),
           streamType: opts.streamType || 'BUFFERED',
           tracks: [].concat(opts.subtitles || []).map(toSubtitles),
           metadata: opts.metadata || {
