@@ -199,7 +199,7 @@ module.exports = function () {
 
   dns.on('response', function (response) {
     response.answers.forEach(function (a) {
-      if (a.type === 'PTR' || a.name === '_googlecast._tcp.local') {
+      if (a.type === 'PTR' && a.name === '_googlecast._tcp.local') {
         var name = a.data.replace('._googlecast._tcp.local', '')
         if (!casts[name]) casts[name] = {name: name, host: null}
       }
