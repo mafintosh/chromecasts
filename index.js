@@ -6,10 +6,11 @@ var mime = require('mime')
 var parseString = require('xml2js').parseString
 var request = require('request')
 
+var SSDP
 try {
-  var SSDP = require('node-ssdp').Client
+  SSDP = require('node-ssdp').Client
 } catch (err) {
-  var SSDP = null
+  SSDP = null
 }
 
 var thunky = require('thunky')
