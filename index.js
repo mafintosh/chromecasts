@@ -3,18 +3,7 @@ var debug = require('debug')('chromecasts')
 var events = require('events')
 var mdns = require('multicast-dns')
 var mime = require('mime')
-var parseString = require('xml2js').parseString
-var request = require('request')
-
-var SSDP
-try {
-  SSDP = require('node-ssdp').Client
-} catch (err) {
-  SSDP = null
-}
-
 var thunky = require('thunky')
-var url = require('url')
 
 var noop = function () {}
 var toMap = function (url) {
@@ -37,7 +26,6 @@ module.exports = function () {
   var dns = mdns()
   var that = new events.EventEmitter()
   var casts = {}
-  var ssdp = SSDP ? new SSDP({logLevel: process.env.DEBUG ? 'trace' : false}) : null
 
   that.players = []
 
@@ -226,44 +214,8 @@ module.exports = function () {
     response.answers.forEach(onanswer)
   })
 
-  if (ssdp) {
-    ssdp.on('response', function (headers, statusCode, info) {
-      if (!headers.LOCATION) return
-
-      request.get(headers.LOCATION, function (err, res, body) {
-        if (err) return
-
-        parseString(body, {explicitArray: false, explicitRoot: false},
-          function (err, service) {
-            if (err) return
-            if (!service.device) return
-            if (service.device.manufacturer !== 'Google Inc.') return
-
-            debug('device %j', service.device)
-
-            var name = service.device.friendlyName
-
-            if (!name) return
-
-            var host = url.parse(service.URLBase).hostname
-
-            if (!casts[name]) {
-              casts[name] = {name: name, host: host}
-              return emit(casts[name])
-            }
-
-            if (casts[name] && !casts[name].host) {
-              casts[name].host = host
-              emit(casts[name])
-            }
-          })
-      })
-    })
-  }
-
   that.update = function () {
-    debug('querying mdns and ssdp')
-    if (ssdp) ssdp.search('urn:dial-multiscreen-org:device:dial:1')
+    debug('querying mdns')
     dns.query('_googlecast._tcp.local', 'PTR')
   }
 
