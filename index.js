@@ -178,10 +178,14 @@ module.exports = function () {
 
     player.subtitles = function (id, cb) {
       if (!cb) cb = noop
-      player.request({
-        type: 'EDIT_TRACKS_INFO',
-        activeTrackIds: id ? [id === true ? 1 : id] : []
-      }, cb)
+      connect(function (err, p) {
+        if (err) return cb(err)
+
+        player.request({
+          type: 'EDIT_TRACKS_INFO',
+          activeTrackIds: id ? [id === true ? 1 : id] : []
+        }, cb)
+      })
     }
 
     player.request = function (data, cb) {
