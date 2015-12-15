@@ -187,6 +187,18 @@ module.exports = function () {
         }, cb)
       })
     }
+    
+    player.volume = function (vol, cb) {
+      if (!cb) cb = noop
+      connect(function (err, p) {
+        if (err) return cb(err)
+
+        player.request({
+          type: 'SET_VOLUME',
+          volume: vol === 0 ? { muted: true } : { level: vol }
+        }, cb)
+      })
+    }
 
     player.request = function (data, cb) {
       if (!cb) cb = noop
