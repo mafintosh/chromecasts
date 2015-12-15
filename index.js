@@ -61,7 +61,19 @@ module.exports = function () {
       client.connect(player.host, function (err) {
         if (err) return cb(err)
         player.emit('connect')
-        client.launch(castv2.DefaultMediaReceiver, function (err, p) {
+
+        client.getSessions(function (err, sess) {
+          if (err) return cb(err)
+
+          var session = sess[0]
+          if (session && session.appId === castv2.DefaultMediaReceiver.APP_ID) {
+            client.join(session, castv2.DefaultMediaReceiver, ready)
+          } else {
+            client.launch(castv2.DefaultMediaReceiver, ready)
+          }
+        })
+
+        function ready (err, p) {
           if (err) return cb(err)
 
           player.emit('ready')
@@ -75,7 +87,7 @@ module.exports = function () {
           })
 
           cb(null, p)
-        })
+        }
       })
     })
 
@@ -187,7 +199,7 @@ module.exports = function () {
         }, cb)
       })
     }
-    
+
     player.volume = function (vol, cb) {
       if (!cb) cb = noop
       connect(function (err, p) {
