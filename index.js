@@ -57,7 +57,7 @@ module.exports = function () {
       client.on('close', function () {
         connect = thunky(reconnect)
       })
-      
+
       client.client.on('close', function () {
         connect = thunky(reconnect)
       })
