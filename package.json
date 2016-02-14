@@ -16,7 +16,7 @@
     "node-ssdp": "^2.2.0"
   },
   "devDependencies": {
-    "standard": "^5.4.1"
+    "standard": "^6.0.5"
   },
   "scripts": {
     "test": "standard"
