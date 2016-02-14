@@ -7,7 +7,7 @@
     "castv2-client": "^1.1.0",
     "debug": "^2.1.3",
     "mime": "^1.3.4",
-    "multicast-dns": "^2.1.0",
+    "multicast-dns": "^5.4.0",
     "request": "^2.55.0",
     "thunky": "^0.1.0",
     "xml2js": "^0.4.8"
