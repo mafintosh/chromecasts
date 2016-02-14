@@ -1,10 +1,10 @@
 var castv2 = require('castv2-client')
 var debug = require('debug')('chromecasts')
 var events = require('events')
+var get = require('simple-get')
 var mdns = require('multicast-dns')
 var mime = require('mime')
 var parseString = require('xml2js').parseString
-var request = require('request')
 
 var SSDP
 try {
@@ -262,10 +262,9 @@ module.exports = function () {
     ssdp.on('response', function (headers, statusCode, info) {
       if (!headers.LOCATION) return
 
-      request.get(headers.LOCATION, function (err, res, body) {
+      get.concat(headers.LOCATION, function (err, res, body) {
         if (err) return
-
-        parseString(body, {explicitArray: false, explicitRoot: false},
+        parseString(body.toString(), {explicitArray: false, explicitRoot: false},
           function (err, service) {
             if (err) return
             if (!service.device) return
