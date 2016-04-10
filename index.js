@@ -211,7 +211,7 @@ module.exports = function () {
 
         player.request({
           type: 'SET_VOLUME',
-          volume: vol === 0 ? { muted: true } : { level: vol }
+          volume: vol === 0 ? { muted: true } : { level: vol, muted: false }
         }, cb)
       })
     }
