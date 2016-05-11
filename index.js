@@ -139,6 +139,7 @@ module.exports = function () {
           contentType: opts.type || mime.lookup(url, 'video/mp4'),
           streamType: opts.streamType || 'BUFFERED',
           tracks: [].concat(opts.subtitles || []).map(toSubtitles),
+          textTrackStyle: opts.textTrackStyle,
           metadata: opts.metadata || {
             type: 0,
             metadataType: 0,
