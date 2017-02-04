@@ -240,15 +240,17 @@ module.exports = function () {
   dns.on('response', function (response) {
     response.answers.forEach(function (a) {
       if (a.type === 'PTR' && a.name === '_googlecast._tcp.local') {
-        var name = a.data.replace('._googlecast._tcp.local', '')
-        if (!casts[name]) casts[name] = {name: name, host: null}
+        var name = a.data.replace('._googlecast._tcp.local', '').replace(/.*-/g,'')
+        match = /(.*)-/g.exec(a.data.replace('._googlecast._tcp.local', ''))
+        displayname = match[1]
+        if (!casts[name]) casts[name] = {name: displayname, host: null}
       }
     })
 
     var onanswer = function (a) {
       debug('got answer %j', a)
 
-      var name = a.name.replace('.local', '')
+      var name = a.name.replace('.local', '').replace(/-/g,'')
       if (a.type === 'A' && casts[name] && !casts[name].host) {
         casts[name].host = a.data
         emit(casts[name])
