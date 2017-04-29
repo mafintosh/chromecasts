@@ -11,7 +11,7 @@ npm install chromecasts --save
 ```js
 const chromecasts = require('chromecasts')()
 
-chromecasts.on('update', player => {
+chromecasts.on('update', players => {
   console.log('all players: ', players)
   player.play('http://example.com/my-video.mp4', {title: 'my video', type: 'video/mp4'})
 })
