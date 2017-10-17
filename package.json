@@ -1,6 +1,6 @@
 {
   "name": "chromecasts",
-  "version": "1.9.0",
+  "version": "1.9.1",
   "description": "Query your local network for Chromecasts and have them play media",
   "main": "index.js",
   "dependencies": {
