@@ -5,6 +5,7 @@ var get = require('simple-get')
 var mdns = require('multicast-dns')
 var mime = require('mime')
 var parseString = require('xml2js').parseString
+var txt = require('dns-txt')()
 
 var SSDP
 try {
@@ -240,18 +241,27 @@ module.exports = function () {
   dns.on('response', function (response) {
     response.answers.forEach(function (a) {
       if (a.type === 'PTR' && a.name === '_googlecast._tcp.local') {
-        var name = a.data.replace('._googlecast._tcp.local', '')
-        if (!casts[name]) casts[name] = {name: name, host: null}
+        var name = a.data
+        var shortname = a.data.replace('._googlecast._tcp.local', '')
+        if (!casts[name]) casts[name] = {name: shortname, host: null}
       }
     })
 
     var onanswer = function (a) {
       debug('got answer %j', a)
 
-      var name = a.name.replace('.local', '')
-      if (a.type === 'A' && casts[name] && !casts[name].host) {
-        casts[name].host = a.data
+      var name = a.name
+      if (a.type === 'SRV' && casts[name] && !casts[name].host) {
+        casts[name].host = a.data.target
         emit(casts[name])
+      }
+
+      if (a.type === 'TXT' && casts[name]) {
+        var text = txt.decode(a.data)
+        if (text.fn) {
+          casts[name].name = text.fn
+          emit(casts[name])
+        }
       }
     }
 
