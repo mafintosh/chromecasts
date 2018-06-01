@@ -263,6 +263,15 @@ module.exports = function () {
           emit(casts[name])
         }
       }
+      
+      if (a.type === 'A') {
+        var aName = name.replace('.local', '');
+        Object.keys(casts).forEach(function (castName) {
+          if (castName.indexOf(aName) > -1) {
+            casts[castName].host = a.data;
+          }
+        });
+      }
     }
 
     response.additionals.forEach(onanswer)
