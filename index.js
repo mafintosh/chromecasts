@@ -167,7 +167,7 @@ module.exports = function () {
       if (!cb) cb = noop
       connect(function (err, p) {
         if (err) return cb(err)
-        p.play()
+        p.play(cb)
       })
     }
 
