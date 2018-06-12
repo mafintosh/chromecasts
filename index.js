@@ -34,6 +34,24 @@ var toSubtitles = function (url, i) {
   }
 }
 
+var getName = function (records) {
+  if (records['TXT']) {
+    var text = txt.decode(records['TXT'].data)
+    if (text.fn) return text.fn
+  }
+
+  if (records['PTR'] && records['PTR'].name === '_googlecast._tcp.local') return records['PTR'].data.replace('._googlecast._tcp.local', '')
+  if (records['SVR']) return records['SRV'].name
+  if (records['TXT']) return records['TXT'].name
+  return null
+}
+
+var getHost = function (records) {
+  if (records['A']) return records['A'].data
+  if (records['SRV']) return records['SRV'].data.target
+  return null
+}
+
 module.exports = function () {
   var dns = mdns()
   var that = new events.EventEmitter()
@@ -239,43 +257,19 @@ module.exports = function () {
   }
 
   dns.on('response', function (response) {
-    response.answers.forEach(function (a) {
-      if (a.type === 'PTR' && a.name === '_googlecast._tcp.local') {
-        var name = a.data
-        var shortname = a.data.replace('._googlecast._tcp.local', '')
-        if (!casts[name]) casts[name] = {name: shortname, host: null}
-      }
-    })
+    var records = response.additionals.concat(response.answers).reduce(function (memo, record) {
+      memo[record.type] = record
+      return memo
+    }, {})
 
-    var onanswer = function (a) {
-      debug('got answer %j', a)
+    var device = { host: getHost(records), name: getName(records) }
 
-      var name = a.name
-      if (a.type === 'SRV' && casts[name] && !casts[name].host) {
-        casts[name].host = a.data.target
-        emit(casts[name])
-      }
+    if (!device.name || !device.host) return
 
-      if (a.type === 'TXT' && casts[name]) {
-        var text = txt.decode(a.data)
-        if (text.fn) {
-          casts[name].name = text.fn
-          emit(casts[name])
-        }
-      }
-      
-      if (a.type === 'A') {
-        var aName = name.replace('.local', '');
-        Object.keys(casts).forEach(function (castName) {
-          if (castName.indexOf(aName) > -1) {
-            casts[castName].host = a.data;
-          }
-        });
-      }
+    if (!casts[device.name]) {
+      casts[device.name] = device
+      emit(device)
     }
-
-    response.additionals.forEach(onanswer)
-    response.answers.forEach(onanswer)
   })
 
   if (ssdp) {
