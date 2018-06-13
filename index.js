@@ -39,10 +39,6 @@ var getName = function (records) {
     var text = txt.decode(records['TXT'].data)
     if (text.fn) return text.fn
   }
-
-  if (records['PTR'] && records['PTR'].name === '_googlecast._tcp.local') return records['PTR'].data.replace('._googlecast._tcp.local', '')
-  if (records['SVR']) return records['SRV'].name
-  if (records['TXT']) return records['TXT'].name
   return null
 }
 
