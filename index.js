@@ -279,7 +279,6 @@ module.exports = function () {
           function (err, service) {
             if (err) return
             if (!service.device) return
-            if (service.device.manufacturer !== 'Google Inc.') return
 
             debug('device %j', service.device)
 
