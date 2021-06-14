@@ -257,7 +257,15 @@ module.exports = function () {
       }
 
       if (a.type === 'TXT' && casts[name]) {
-        var text = txt.decode(a.data)
+        const text = {}
+        a.data.forEach((item) => {
+          const decodedItem = txt.decode(item)
+          Object.keys(decodedItem).forEach((key) => {
+            text[key] = decodedItem[key]
+          })
+        })
+
+        const friendlyName = text.fn || text.n
         if (text.fn) {
           casts[name].name = text.fn
           emit(casts[name])
