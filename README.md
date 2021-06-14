@@ -2,17 +2,17 @@
 
 Query your local network for Chromecasts and have them play media
 
-```
-npm install chromecasts
+```bash
+npm install chromecasts --save
 ```
 
 ## Usage
 
-``` js
-var chromecasts = require('chromecasts')()
+```js
+const chromecasts = require('chromecasts')()
 
-chromecasts.on('update', function (player) {
-  console.log('all players: ', chromecasts.players)
+chromecasts.on('update', players => {
+  console.log('all players: ', players)
   player.play('http://example.com/my-video.mp4', {title: 'my video', type: 'video/mp4'})
 })
 ```
@@ -37,7 +37,7 @@ Emitted when a new player is found on the local network
 
 Make the player play a url. Options include:
 
-``` js
+```js
 {
   title: 'My movie',
   type: 'video/mp4',
