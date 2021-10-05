@@ -152,7 +152,10 @@ module.exports = function () {
         var autoSubtitles = opts.autoSubtitles
         if (autoSubtitles === false) autoSubtitles = 0
         if (autoSubtitles === true) autoSubtitles = 1
-
+        if (opts.subtitles_style) {
+                    media.textTrackStyle = opts.subtitles_style;
+                    this.subtitles_style = opts.subtitles_style;
+        }
         var playerOptions = {
           autoplay: opts.autoPlay !== false,
           currentTime: opts.seek,
